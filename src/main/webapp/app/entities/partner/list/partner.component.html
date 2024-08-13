@@ -1,0 +1,159 @@
+<div>
+  <h2 id="page-heading" data-cy="PartnerHeading">
+    <span jhiTranslate="appliApp.partner.home.title">Partners</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="appliApp.partner.home.refreshListLabel">Actualiser la liste</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-partner"
+        [routerLink]="['/partner/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="appliApp.partner.home.createLabel">Créer un nouveau Partner</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (partners?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="appliApp.partner.home.notFound">Aucun Partner trouvé</span>
+    </div>
+  }
+
+  @if (partners && partners.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="codep">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.codep">Codep</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="type">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.type">Type</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="name">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.name">Name</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="contact">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.contact">Contact</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="logo">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.logo">Logo</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="icon">
+              <div class="d-flex">
+                <span jhiTranslate="appliApp.partner.icon">Icon</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (partner of partners; track trackId) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/partner', partner.id, 'view']">{{ partner.id }}</a>
+              </td>
+              <td>{{ partner.codep }}</td>
+              <td>{{ partner.type }}</td>
+              <td>{{ partner.name }}</td>
+              <td>{{ partner.contact }}</td>
+              <td>
+                @if (partner.logo) {
+                  <a (click)="openFile(partner.logo, partner.logoContentType)">
+                    <img [src]="'data:' + partner.logoContentType + ';base64,' + partner.logo" style="max-height: 30px" alt="partner" />
+                  </a>
+                  <span>{{ partner.logoContentType }}, {{ byteSize(partner.logo) }}</span>
+                }
+              </td>
+              <td>
+                @if (partner.icon) {
+                  <a (click)="openFile(partner.icon, partner.iconContentType)">
+                    <img [src]="'data:' + partner.iconContentType + ';base64,' + partner.icon" style="max-height: 30px" alt="partner" />
+                  </a>
+                  <span>{{ partner.iconContentType }}, {{ byteSize(partner.icon) }}</span>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a [routerLink]="['/partner', partner.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">Voir</span>
+                  </a>
+
+                  <a [routerLink]="['/partner', partner.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                    <fa-icon icon="pencil-alt"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Editer</span>
+                  </a>
+
+                  <button type="submit" (click)="delete(partner)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                    <fa-icon icon="times"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Supprimer</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @if (partners && partners.length > 0) {
+    <div>
+      <div class="d-flex justify-content-center">
+        <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <ngb-pagination
+          [collectionSize]="totalItems"
+          [page]="page"
+          [pageSize]="itemsPerPage"
+          [maxSize]="5"
+          [rotate]="true"
+          [boundaryLinks]="true"
+          (pageChange)="navigateToPage($event)"
+        ></ngb-pagination>
+      </div>
+    </div>
+  }
+</div>
